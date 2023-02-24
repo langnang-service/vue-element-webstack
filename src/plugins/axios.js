@@ -9,7 +9,7 @@ import axios from "axios";
 // axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 // console.log(process.env);
 let config = {
-  baseURL: process.env.VUE_APP_API_URL || process.env.BASE_URL || ""
+  baseURL: process.env.VUE_APP_BASE_API || process.env.BASE_URL || "",
   // timeout: 60 * 1000, // Timeout
   // withCredentials: true, // Check cross-site Access-Control
 };
@@ -33,7 +33,10 @@ _axios.interceptors.request.use(
 _axios.interceptors.response.use(
   function (response) {
     // Do something with response data
-    if (response.status == successStatus && response.data.status == successStatus) {
+    if (
+      response.status == successStatus &&
+      response.data.status == successStatus
+    ) {
       return response.data.data;
     } else {
       return Promise.reject(response);
@@ -52,13 +55,13 @@ Plugin.install = function (Vue) {
     axios: {
       get() {
         return _axios;
-      }
+      },
     },
     $axios: {
       get() {
         return _axios;
-      }
-    }
+      },
+    },
   });
 };
 

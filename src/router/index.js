@@ -1,15 +1,42 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 import Home from "../views/Home.vue";
-
+import { loadJs } from "./../assets/js/app.js";
+import store from "./../store/index";
+import { selectMetaList } from "../api/meta";
 Vue.use(VueRouter);
 
-const routes = [
+async function getDynamicRoutes() {
+  const result = await selectMetaList({ type: "branch" }).then((res) =>
+    Promise.resolve(res.rows)
+  );
+
+  // console.log("🚀 ~ file: index.js:13 ~ getDynamicRoutes ~ result:", result);
+
+  return result;
+}
+
+const dynamicRoutes = getDynamicRoutes();
+
+// console.log("🚀 ~ file: index.js:14 ~ dynamicRoutes:", dynamicRoutes);
+
+export function beforeEnter(to, form, next) {
+  store.commit("app/SET_PREFIX", to.meta.prefix);
+  next();
+}
+export const asyncRoutes = [];
+export const constantRoutes = [
   {
-    path: "/",
+    path: "/home/:name?",
     name: "Home",
-    meta: { title: "Home" },
-    component: Home,
+    meta: { title: "Home", prefix: "home" },
+    component: () => import("../views/Main.vue"),
+    beforeEnter,
+  },
+  {
+    path: "/public/:branch/:name?",
+    component: () => import("../views/Main.vue"),
+    beforeEnter,
   },
   {
     path: "/about",
@@ -18,26 +45,18 @@ const routes = [
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ "../views/About.vue"),
+    component: () => import("../views/About.vue"),
   },
   {
-    path: "/element",
-    name: "Element",
-    meta: { title: "Element" },
-    component: () => import(/* webpackChunkName: "about" */ "../views/Element.vue"),
+    path: "*",
+    redirect: "/home",
   },
 ];
 
 const router = new VueRouter({
   mode: "hash",
   base: process.env.BASE_URL,
-  routes,
+  routes: constantRoutes,
 });
 
-router.beforeEach((to, from, next) => {
-  if (to.meta.title) {
-    document.title = to.meta.title
-  }
-  next()
-})
 export default router;
