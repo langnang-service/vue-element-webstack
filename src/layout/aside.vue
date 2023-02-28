@@ -24,7 +24,7 @@
       <el-scrollbar style="height:calc(100vh - 62px);">
         <el-menu background-color="#2c2e2f" text-color="#979898" active-text-color="#ffd04b" unique-opened style="border: unset" v-contextmenu:contextmenu>
           <draggable v-model="$store.state.app.tree" @end="handleDraggableEnd">
-            <component v-for="(menu, idx) in $store.state.app.tree" :key="idx" :index="menu.name" :is="menu.children ? 'el-submenu' : 'el-menu-item'">
+            <component v-for="(menu, idx) in $store.state.app.tree" :key="idx" :index="menu.name" :is="menu.children.length>0 ? 'el-submenu' : 'el-menu-item'">
               <template slot="title">
                 <a :href="'#' + $store.state.app.prefix + menu.name" class="smooth">
                   <i :class="menu.icon"></i>

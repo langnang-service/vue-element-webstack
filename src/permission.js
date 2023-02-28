@@ -18,7 +18,10 @@ router.beforeEach(async (to, from, next) => {
   // set page title
   document.title = getPageTitle(to.meta.title);
 
-  // store.dispatch("app/getBranchList");
+  if (store.state.app.branches.length == 0) {
+    await store.dispatch("app/getBranchList");
+  }
+
   // await selectMetaList({ type: "branch" }).then((res) => {
   //   const routes = res.rows.map((item) => {
   //     return {

@@ -9,13 +9,19 @@
       <li class="hidden-sm hidden-xs">
         <router-link to="/home">Home</router-link>
       </li>
-      <li class="hidden-sm hidden-xs" v-for="(item, idx) in $store.state.app.branches" :key="idx">
+      <li class="hidden-sm hidden-xs" v-for="(item, idx) in branches" :key="idx">
         <router-link :to="'/public/' + item.slug.slice(7)">{{ item.name }}</router-link>
       </li>
     </ul>
     <ul class="user-info-menu right-links list-inline list-unstyled">
       <li class="hidden-sm hidden-xs" @click="dialogFormVisible = true">
         <a style="cursor:pointer;">站点收录</a>
+      </li>
+      <li class="hidden-sm hidden-xs">
+        <a href="#" target="_blank">导入</a>
+      </li>
+      <li class="hidden-sm hidden-xs">
+        <a href="#" target="_blank">导出</a>
       </li>
       <li class="hidden-sm hidden-xs">
         <a href="#" target="_blank">登录</a>
@@ -55,6 +61,7 @@
   </el-header>
 </template>
 <script>
+import { mapGetters } from 'vuex';
 export default {
   name: "LayoutHeader",
   data() {
@@ -90,6 +97,9 @@ export default {
       },
       formLabelWidth: '120px'
     }
+  },
+  computed: {
+    ...mapGetters(["branches"])
   }
 }
 </script>

@@ -5,14 +5,16 @@ function deleteMetaItem() {}
 function deleteMetaList() {}
 function updateMetaItem() {}
 function updateMetaList() {}
-export const selectMetaList = (data) =>  request({
-    url: "/vue-element-webstack/meta/list",
+export const selectMetaList = (data) =>
+  request({
+    url: "/api/webstack/meta/list",
     method: "post",
     data,
   });
 
-export const selectMetaTree = (data) => request({
-    url: "/vue-element-webstack/meta/tree",
+export const selectMetaTree = (data) =>
+  request({
+    url: "/api/webstack/meta/tree",
     method: "post",
     data,
   });

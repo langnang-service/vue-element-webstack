@@ -53,7 +53,7 @@ export default {
     // this.$store.dispatch('app/getMetaTree', { name: 'langnang', type: "category" })
     await next(async (vm) => {
       await vm.$store.dispatch("app/getMetaTree", {
-        name: to.params.branch || "langnang",
+        slug: to.params.branch || "default",
         type: "category",
       });
     });
@@ -66,7 +66,7 @@ export default {
       self: this,
     });
     await this.$store.dispatch("app/getMetaTree", {
-      name: to.params.branch || "langnang",
+      slug: to.params.branch || "default",
       type: "category",
     });
     next();

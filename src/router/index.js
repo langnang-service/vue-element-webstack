@@ -16,7 +16,7 @@ async function getDynamicRoutes() {
   return result;
 }
 
-const dynamicRoutes = getDynamicRoutes();
+// const dynamicRoutes = getDynamicRoutes();
 
 // console.log("🚀 ~ file: index.js:14 ~ dynamicRoutes:", dynamicRoutes);
 

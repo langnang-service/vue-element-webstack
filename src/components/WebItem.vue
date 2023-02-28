@@ -1,7 +1,7 @@
 <template>
   <div :id="prefix + transName(item)" v-contextmenu:contextmenu style="margin-bottom: -65px; padding-top: 85px">
     <el-card :body-style="{ 'padding': '0 10px 10px 10px' }">
-      <template slot="header" style="padding:10px">
+      <template style="padding: 10px;" slot="header">
         <h4 class="text-gray">
           <i class="linecons-tag"></i>
           {{ transName(item) }}
