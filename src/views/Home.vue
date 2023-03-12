@@ -17,7 +17,6 @@ import Footer from "../components/Footer.vue";
 import itemsData from "../assets/designer.json";
 // import { loadJs } from '../assets/js/app.js'
 import { mapMutations, mapState } from "vuex";
-import { getMetaList } from "../api/meta"
 
 export default {
   name: "Index",

@@ -3,25 +3,16 @@ import VueRouter from "vue-router";
 import Home from "../views/Home.vue";
 import { loadJs } from "./../assets/js/app.js";
 import store from "./../store/index";
-import { selectMetaList } from "../api/meta";
 Vue.use(VueRouter);
 
-async function getDynamicRoutes() {
-  const result = await selectMetaList({ type: "branch" }).then((res) =>
-    Promise.resolve(res.rows)
-  );
-
-  // console.log("🚀 ~ file: index.js:13 ~ getDynamicRoutes ~ result:", result);
-
-  return result;
-}
+async function getDynamicRoutes() {}
 
 // const dynamicRoutes = getDynamicRoutes();
 
 // console.log("🚀 ~ file: index.js:14 ~ dynamicRoutes:", dynamicRoutes);
 
 export function beforeEnter(to, form, next) {
-  store.commit("app/SET_PREFIX", to.meta.prefix);
+  store.commit("app/SET_BRANCH_PREFIX", to.meta.prefix);
   next();
 }
 export const asyncRoutes = [];

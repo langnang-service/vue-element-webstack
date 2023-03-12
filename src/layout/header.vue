@@ -9,8 +9,10 @@
       <li class="hidden-sm hidden-xs">
         <router-link to="/home">Home</router-link>
       </li>
-      <li class="hidden-sm hidden-xs" v-for="(item, idx) in branches" :key="idx">
-        <router-link :to="'/public/' + item.slug.slice(7)">{{ item.name }}</router-link>
+      <li class="hidden-sm hidden-xs" v-for="(item, idx) in branch_list" :key="idx">
+        <router-link :to="'/public/' + item.slug">
+          <el-badge value="Private" class="item">{{ item.name }}</el-badge>
+        </router-link>
       </li>
     </ul>
     <ul class="user-info-menu right-links list-inline list-unstyled">
@@ -99,7 +101,9 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(["branches"])
+    ...mapGetters(["branch_list"])
+  },
+  created() {
   }
 }
 </script>

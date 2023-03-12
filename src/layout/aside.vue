@@ -22,18 +22,18 @@
       </header>
       <!-- 侧边栏 -->
       <el-scrollbar style="height:calc(100vh - 62px);">
-        <el-menu background-color="#2c2e2f" text-color="#979898" active-text-color="#ffd04b" unique-opened style="border: unset" v-contextmenu:contextmenu>
-          <draggable v-model="$store.state.app.tree" @end="handleDraggableEnd">
-            <component v-for="(menu, idx) in $store.state.app.tree" :key="idx" :index="menu.name" :is="menu.children.length>0 ? 'el-submenu' : 'el-menu-item'">
+        <el-menu background-color="#2c2e2f" text-color="#979898" active-text-color="#ffd04b" unique-opened style="border: unset" v-contextmenu:contextmenu @mousedown.native="handleMouseDown">
+          <draggable v-model="tree" @end="handleDraggableEnd">
+            <component v-for="(menu, idx) in tree.filter(v => v.type == 'category')" :key="idx" :index="menu.name" :is="menu.children.filter(v => v.type == 'category').length > 0 ? 'el-submenu' : 'el-menu-item'" @contextmenu.native.stop="$event => handleRowContextMenu(menu, $event)">
               <template slot="title">
-                <a :href="'#' + $store.state.app.prefix + menu.name" class="smooth">
+                <a :href="'#' + branch_prefix + menu.name" class="smooth">
                   <i :class="menu.icon"></i>
                   <span class="title">{{ menu.name }}</span>
                 </a>
               </template>
               <draggable v-model="menu.children">
-                <el-menu-item v-for="(submenu, idx) in menu.children" :key="idx" :index="submenu.name">
-                  <a :href="'#' + $store.state.app.prefix + submenu.name" class="smooth">
+                <el-menu-item v-for="(submenu, idx) in menu.children.filter(v => v.type == 'category')" :key="idx" :index="submenu.name" @contextmenu.native.stop="$event => handleRowContextMenu(submenu, $event)">
+                  <a :href="'#' + branch_prefix + submenu.name" class="smooth">
                     <i :class="submenu.icon"></i>
                     <span class="title">{{ submenu.name }}</span>
                     <span v-show="submenu.is_hot" class="label label-pink pull-right hidden-collapsed">Hot</span>
@@ -53,36 +53,94 @@
       </el-scrollbar>
     </div>
     <v-contextmenu ref="contextmenu">
-      <v-contextmenu-item>新增</v-contextmenu-item>
-      <v-contextmenu-item>删除</v-contextmenu-item>
-      <v-contextmenu-item>修改</v-contextmenu-item>
-      <v-contextmenu-item>删除</v-contextmenu-item>
-      <hr style="margin-top:3px;margin-bottom: 3px;" />
-      <v-contextmenu-item>批量</v-contextmenu-item>
+      <v-contextmenu-item @click="() => $refs['category'].toggle({ parent: branch_active.id })">新建目录</v-contextmenu-item>
+      <v-contextmenu-item :disabled="branch_active.id !== (row || {}).parent" @click="() => $refs['category'].toggle({ parent: row.id })">新建子目录</v-contextmenu-item>
+      <hr />
+      <v-contextmenu-item @click="() => $refs['site'].toggle({ parent: row.id })">站点收录</v-contextmenu-item>
+      <hr />
+      <v-contextmenu-item @click="() => $store.dispatch('app/deleteList', row)">删除目录</v-contextmenu-item>
+      <v-contextmenu-item @click="() => $refs['category'].toggle(row)">修改目录</v-contextmenu-item>
+      <hr />
+      <v-contextmenu-item disabled>批量</v-contextmenu-item>
     </v-contextmenu>
+    <CategoryDialog ref="category" @submit="handleSubmitDialog" />
+    <SiteDialog ref="site" @submit="handleSubmitDialog" />
   </el-aside>
 </template>
 <script>
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 import draggable from 'vuedraggable'
+import { insertItem, deleteList, updateItem } from "@/api/guide";
+import Mock from 'mockjs'
+import CategoryDialog from "@/components/CategoryDialog.vue";
+import SiteDialog from "@/components/SiteDialog.vue";
 export default {
   name: "LayoutAside",
-  components: { draggable },
+  components: { draggable, CategoryDialog, SiteDialog },
   data() {
-    return {};
+    return {
+      row: null,
+      visible: false,
+    };
   },
   computed: {
-    ...mapState(["tree", "prefix"]),
+    ...mapGetters(["tree", "branch_prefix", "branch_active"])
   },
   created() { },
   methods: {
+    /**
+     * 右键表格行，显示菜单
+     */
+    handleRowContextMenu(row, event) {
+      event.preventDefault()
+      this.row = row;
+      this.$refs.contextmenu.show({ top: event.clientY, left: event.clientX });
+    },
+    /**
+     * 隐藏菜单
+     */
+    handleMouseDown() {
+      console.log("🚀 ~ handleMouseDown:")
+      this.row = null;
+      // this.$refs.contextmenu.hide()
+    },
     transName(webItem) {
       return this.lang.key === "en" ? webItem.en_name : webItem.name;
     },
     handleDraggableEnd(evt, originalEvent) {
       console.log("🚀 ~ file: aside.vue:81 ~ handleDraggableEnd ~ handleDraggableEnd:", { arguments, evt, originalEvent })
-    }
+    },
+    handleInsertItem(row) {
+      this.$store.dispatch('app/insertItem', row);
+      // insertItem(row).then(res => {
+      // this.selectTree();
+      // });
+    },
+    handleInsertChild() {
+      const parent = this.row.id;
+      this.handleInsertItem(parent)
+    },
+    handleDeleteItem() {
+      this.$store.dispatch('app/deleteList', this.row);
+    },
+    handleUpdateItem(row) {
+      // updateItem(row);
+      // const item = { ...this.row };
+      // item.name = Mock.mock('@ctitle');
+      updateItem(row).then(res => {
+        this.selectTree();
+      });
+    },
+    handleSubmitDialog(row) {
+      if (row.id) {
+        this.$store.dispatch('app/updateItem', row);
+      } else {
+        this.$store.dispatch('app/insertItem', row);
+        // this.handleInsertItem(row);
+      }
+    },
   },
+
 };
 </script>
 
