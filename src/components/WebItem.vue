@@ -1,9 +1,57 @@
 <template>
   <div :id="prefix + item.name" style="margin-bottom: -65px; padding-top: 85px">
-    <el-card :body-style="{ 'padding': '0 10px 10px 10px' }" v-contextmenu:contextmenu @contextmenu.native.stop="$event => handleRowContextMenu(null, $event)">
+    <el-card :body-style="{ 'padding': '0 10px 10px 10px' }" v-if="!user_info">
       <template slot="header">
         <h4 class="text-gray">
-          <i class="linecons-tag"></i>
+          <component :is="(item.icon || '').split(' ').length == 2 ? 'font-awesome-icon' : 'i'" :icon="(item.icon || '').split(' ')" :class="item.icon ? item.icon : 'linecons-tag'"></component>
+          {{ item.name }}
+        </h4>
+      </template>
+
+      <el-row :gutter="10">
+        <el-checkbox-group v-model="selection" v-if="false">
+          <el-col :span="6" v-for="(web, idx) in item.web" :key="idx">
+            <el-checkbox :label="web">
+              <el-card shadow="hover" @click.native="openweb(web.url)" style="margin: 10px 0 0 0; height: 86px; cursor: pointer">
+                <div class="xe-comment-entry">
+                  <div class="xe-user-img">
+                    <img :src="web.logo" style="width: 40px; height: 40px" class="lozad img-circle" width="40" />
+                  </div>
+                  <div class="xe-comment" style="margin-left: 40px;">
+                    <a href="#" class="xe-user-name overflowClip_1">
+                      <strong>{{ web.title }}</strong>
+                    </a>
+                    <p class="overflowClip_2">{{ web.desc }}</p>
+                  </div>
+                </div>
+              </el-card>
+            </el-checkbox>
+          </el-col>
+        </el-checkbox-group>
+        <el-empty v-if="item.children.filter(v => v.type === 'site').length == 0" :image-size="0"></el-empty>
+        <el-col :span="6" v-for="(web, idx) in item.children.filter(v => v.type === 'site')" :key="idx">
+          <el-tooltip effect="dark" :content="web.url" placement="bottom">
+            <el-card shadow="hover" @click.native="openweb(web.url)" style="margin: 10px 0 0 0; height: 76px; cursor: pointer" body-style="padding:10px;">
+              <div class="xe-comment-entry">
+                <div class="xe-user-img">
+                  <img :src="web.icon" style="width: 40px; height: 40px" class="lozad img-circle" width="40" />
+                </div>
+                <div class="xe-comment" style="margin-left: 40px;">
+                  <a href="#" class="xe-user-name overflowClip_1">
+                    <strong>{{ web.name }}</strong>
+                  </a>
+                  <p class="overflowClip_2">{{ web.description }}</p>
+                </div>
+              </div>
+            </el-card>
+          </el-tooltip>
+        </el-col>
+      </el-row>
+    </el-card>
+    <el-card :body-style="{ 'padding': '0 10px 10px 10px' }" v-else v-contextmenu:contextmenu @contextmenu.native.stop="$event => handleRowContextMenu(null, $event)">
+      <template slot="header">
+        <h4 class="text-gray">
+          <component :is="(item.icon || '').split(' ').length == 2 ? 'font-awesome-icon' : 'i'" :icon="(item.icon || '').split(' ')" :class="item.icon ? item.icon : 'linecons-tag'" style="margin:0 7px 0 0;width:17px;"></component>
           {{ item.name }}
         </h4>
       </template>
@@ -33,6 +81,7 @@
           <el-col :span="6" v-for="(web, idx) in item.children.filter(v => v.type === 'site')" :key="idx" @contextmenu.native.stop="$event => handleRowContextMenu(web, $event)">
             <el-tooltip effect="dark" :content="web.url" placement="bottom">
               <el-card shadow="hover" @click.native="openweb(web.url)" style="margin: 10px 0 0 0; height: 76px; cursor: pointer" body-style="padding:10px;">
+                <el-tag v-if="web.status !== 'public'" type="danger" effect="dark" style="float: right;height:unset;line-height: unset;padding:0; margin-right: -10px;margin-top: -10px;">{{ web.status }}</el-tag>
                 <div class="xe-comment-entry">
                   <div class="xe-user-img">
                     <img :src="web.icon" style="width: 40px; height: 40px" class="lozad img-circle" width="40" />
@@ -76,6 +125,7 @@ import { insertItem, deleteList, updateItem } from "@/api/guide";
 import Mock from 'mockjs'
 import CategoryDialog from "@/components/CategoryDialog.vue";
 import SiteDialog from "@/components/SiteDialog.vue";
+import { mapGetters } from 'vuex';
 export default {
   name: "WebItem",
   components: { draggable, CategoryDialog, SiteDialog },
@@ -91,14 +141,25 @@ export default {
   },
   created() {
   },
+  computed: {
+    ...mapGetters(["user_info"]),
+  },
   methods: {
     /**
-   * 右键表格行，显示菜单
-   */
+     * 右键表格行，显示菜单
+     */
     handleRowContextMenu(row, event) {
-      event.preventDefault()
-      this.row = row;
-      this.$refs.contextmenu.show({ top: event.clientY, left: event.clientX });
+      if (this.user_info) {
+        console.log("🚀 ~ file: WebItem.vue:103 ~ row:", row)
+        event.preventDefault()
+        this.row = row;
+        this.$refs.contextmenu.show({ top: event.clientY, left: event.clientX });
+      } else {
+        this.$refs.contextmenu.hide()
+        // console.log(event.isDefaultPrevented())
+        console.log("🚀 ~ file: WebItem.vue:107 ~ event:", event)
+        return true;
+      }
     },
     /**
      * 隐藏菜单

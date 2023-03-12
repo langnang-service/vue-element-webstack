@@ -22,26 +22,50 @@
       </header>
       <!-- 侧边栏 -->
       <el-scrollbar style="height:calc(100vh - 62px);">
-        <el-menu background-color="#2c2e2f" text-color="#979898" active-text-color="#ffd04b" unique-opened style="border: unset" v-contextmenu:contextmenu @mousedown.native="handleMouseDown">
+        <el-menu background-color="#2c2e2f" text-color="#979898" active-text-color="#ffd04b" unique-opened style="border: unset" v-if="!user_info">
+          <component v-for="(menu, idx) in tree.filter(v => v.type == 'category')" :key="idx" :index="menu.name" :is="menu.children.filter(v => v.type == 'category').length > 0 ? 'el-submenu' : 'el-menu-item'">
+            <template slot="title">
+              <a :href="'#' + branch_prefix + menu.name" class="smooth">
+                <component :is="menu.icon.split(' ').length == 2 ? 'font-awesome-icon' : 'i'" :icon="menu.icon.split(' ')" :class="menu.icon || 'linecons-tag'"></component>
+                <span class="title">{{ menu.name }}</span>
+              </a>
+            </template>
+            <el-menu-item v-for="(submenu, idx) in menu.children.filter(v => v.type == 'category')" :key="idx" :index="submenu.name">
+              <a :href="'#' + branch_prefix + submenu.name" class="smooth">
+                <component :is="submenu.icon.split(' ').length == 2 ? 'font-awesome-icon' : 'i'" :icon="submenu.icon.split(' ')" :class="submenu.icon || 'linecons-tag'"></component>
+                <span class="title">{{ submenu.name }}</span>
+                <span v-show="submenu.is_hot" class="label label-pink pull-right hidden-collapsed">Hot</span>
+              </a>
+            </el-menu-item>
+          </component>
+          <el-menu-item>
+            <router-link to="/about" class="smooth" index="about">
+              <i class="linecons-heart"></i>
+              <span class="tooltip-blue">关于本站</span>
+              <span class="label label-primary pull-right hidden-collapsed">♥︎</span>
+            </router-link>
+          </el-menu-item>
+        </el-menu>
+        <el-menu background-color="#2c2e2f" text-color="#979898" active-text-color="#ffd04b" unique-opened style="border: unset" v-contextmenu:contextmenu @mousedown.native="handleMouseDown" v-else>
           <draggable v-model="tree" @end="handleDraggableEnd">
             <component v-for="(menu, idx) in tree.filter(v => v.type == 'category')" :key="idx" :index="menu.name" :is="menu.children.filter(v => v.type == 'category').length > 0 ? 'el-submenu' : 'el-menu-item'" @contextmenu.native.stop="$event => handleRowContextMenu(menu, $event)">
               <template slot="title">
                 <a :href="'#' + branch_prefix + menu.name" class="smooth">
-                  <i :class="menu.icon"></i>
+                  <component :is="menu.icon.split(' ').length == 2 ? 'font-awesome-icon' : 'i'" :icon="menu.icon.split(' ')" :class="menu.icon || 'linecons-tag'"></component>
                   <span class="title">{{ menu.name }}</span>
                 </a>
               </template>
               <draggable v-model="menu.children">
                 <el-menu-item v-for="(submenu, idx) in menu.children.filter(v => v.type == 'category')" :key="idx" :index="submenu.name" @contextmenu.native.stop="$event => handleRowContextMenu(submenu, $event)">
                   <a :href="'#' + branch_prefix + submenu.name" class="smooth">
-                    <i :class="submenu.icon"></i>
+                    <component :is="submenu.icon.split(' ').length == 2 ? 'font-awesome-icon' : 'i'" :icon="submenu.icon.split(' ')" :class="submenu.icon || 'linecons-tag'"></component>
                     <span class="title">{{ submenu.name }}</span>
                     <span v-show="submenu.is_hot" class="label label-pink pull-right hidden-collapsed">Hot</span>
                   </a>
                 </el-menu-item>
               </draggable>
             </component>
-            <el-menu-item>
+            <el-menu-item @contextmenu.native.stop="$event => handleRowContextMenu(null, $event)">
               <router-link to="/about" class="smooth" index="about">
                 <i class="linecons-heart"></i>
                 <span class="tooltip-blue">关于本站</span>
@@ -58,8 +82,8 @@
       <hr />
       <v-contextmenu-item @click="() => $refs['site'].toggle({ parent: row.id })">站点收录</v-contextmenu-item>
       <hr />
-      <v-contextmenu-item @click="() => $store.dispatch('app/deleteList', row)">删除目录</v-contextmenu-item>
-      <v-contextmenu-item @click="() => $refs['category'].toggle(row)">修改目录</v-contextmenu-item>
+      <v-contextmenu-item :disabled="!row" @click="() => $store.dispatch('app/deleteList', row)">删除目录</v-contextmenu-item>
+      <v-contextmenu-item :disabled="!row" @click="() => $refs['category'].toggle(row)">修改目录</v-contextmenu-item>
       <hr />
       <v-contextmenu-item disabled>批量</v-contextmenu-item>
     </v-contextmenu>
@@ -84,7 +108,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["tree", "branch_prefix", "branch_active"])
+    ...mapGetters(["tree", "branch_prefix", "branch_active", "user_info"])
   },
   created() { },
   methods: {
@@ -92,15 +116,17 @@ export default {
      * 右键表格行，显示菜单
      */
     handleRowContextMenu(row, event) {
-      event.preventDefault()
-      this.row = row;
-      this.$refs.contextmenu.show({ top: event.clientY, left: event.clientX });
+      if (this.user_info) {
+        event.preventDefault()
+        this.row = row;
+        this.$refs.contextmenu.show({ top: event.clientY, left: event.clientX });
+      }
+
     },
     /**
      * 隐藏菜单
      */
     handleMouseDown() {
-      console.log("🚀 ~ handleMouseDown:")
       this.row = null;
       // this.$refs.contextmenu.hide()
     },
@@ -152,7 +178,8 @@ export default {
   display: block;
   border-bottom: 1px solid #313437;
 
-  i {
+  i,
+  svg {
     display: inline-block;
     margin-right: 10px;
     width: 20px;

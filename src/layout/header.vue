@@ -16,17 +16,18 @@
       </li>
     </ul>
     <ul class="user-info-menu right-links list-inline list-unstyled">
-      <li class="hidden-sm hidden-xs" @click="dialogFormVisible = true">
-        <a style="cursor:pointer;">站点收录</a>
+      <li class="hidden-sm hidden-xs" @click="() => $refs.site.toggle({ parent: branch_active.id })">
+        <a :href="'#/' + branch_prefix">站点收录</a>
       </li>
       <li class="hidden-sm hidden-xs">
-        <a href="#" target="_blank">导入</a>
+        <a :href="'#/' + branch_prefix">导入</a>
       </li>
       <li class="hidden-sm hidden-xs">
-        <a href="#" target="_blank">导出</a>
+        <a :href="'#/' + branch_prefix">导出</a>
       </li>
       <li class="hidden-sm hidden-xs">
-        <a href="#" target="_blank">登录</a>
+        <a :href="'#/' + branch_prefix" v-if="!user_info" @click="() => $refs.login.toggle()">登录</a>
+        <a :href="'#/' + branch_prefix" v-else @click="() => $store.dispatch('user/logout')">登出</a>
       </li>
       <li class="hidden-sm hidden-xs">
         <a href="https://github.com/Anjaxs/WebStack-vue" target="_blank">
@@ -60,12 +61,20 @@
         <el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
       </div>
     </el-dialog>
+    <LoginDialog ref="login" @submit="handleSubmitLoginDialog" />
+    <SiteDialog ref="site" @submit="handleSubmitDialog" />
   </el-header>
 </template>
 <script>
 import { mapGetters } from 'vuex';
+import LoginDialog from '@/components/LoginDialog.vue';
+import SiteDialog from '@/components/SiteDialog.vue'
 export default {
   name: "LayoutHeader",
+  components: {
+    LoginDialog,
+    SiteDialog,
+  },
   data() {
     return {
       gridData: [{
@@ -101,9 +110,18 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(["branch_list"])
+    ...mapGetters(["branch_prefix", "branch_active", "branch_list", "user_info"])
   },
   created() {
+  },
+  methods: {
+    handleSubmitLoginDialog(row) {
+      this.$store.dispatch('user/login', row);
+    },
+    handleSubmitDialog(row) {
+      this.$store.dispatch('app/insertItem', row);
+    }
   }
+
 }
 </script>

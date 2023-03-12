@@ -6,15 +6,19 @@
       </el-form-item>
       <el-form-item label="徽标" prop="icon">
         <el-input v-model="form.icon"></el-input>
-        <el-avatar :src="form.icon"></el-avatar>
       </el-form-item>
       <el-form-item label="地址" prop="url">
-        <el-input v-model="form.url"></el-input>
+        <el-input v-model="form.url">
+          <template slot="append">
+            <font-awesome-icon :icon="['fas', 'spider']" @click="onCrawlerSite"></font-awesome-icon>
+          </template>
+        </el-input>
       </el-form-item>
-      <el-form-item label="状态" prop="status">
+      <el-form-item v-if="user_info" label="状态" prop="status">
         <el-radio-group v-model="form.status">
-          <el-radio label="public"></el-radio>
-          <el-radio label="private"></el-radio>
+          <el-radio label="public">公开</el-radio>
+          <el-radio label="private">私有</el-radio>
+          <el-radio label="draft">草稿</el-radio>
         </el-radio-group>
       </el-form-item>
       <el-form-item label="排序">
@@ -24,7 +28,7 @@
         <el-input type="textarea" v-model="form.desc"></el-input>
       </el-form-item>
       <el-form-item class="text-right">
-        <el-button class="pull-left" type="warning" @click="onMock">Mock</el-button>
+        <el-button v-if="user_info" class="pull-left" type="warning" @click="onMock">Mock</el-button>
         <el-button type="primary" @click="onSubmit">确认</el-button>
         <el-button @click="onCancel">取消</el-button>
       </el-form-item>
@@ -33,7 +37,9 @@
 </template>
 <script>
 import { elementIcons, fontAwesomeBrands } from '@/constants'
+import { crawlerItem } from '@/api/guide';
 import Mock from 'mockjs'
+import { mapGetters } from 'vuex';
 const originForm = {
   id: null,
   name: null,
@@ -63,6 +69,7 @@ export default {
     return {
       visible: false,
       title: "",
+      loading: false,
       form: {
         ...originForm,
       },
@@ -79,13 +86,18 @@ export default {
         { label: "Element UI", value: "element_ui", children: elementIcons },
         { label: "Font Awesome Brands", value: "font_awesome_brands", children: fontAwesomeBrands }
       ],
+      iconOptions: [],
+      metaOptions: [],
     }
+  },
+  computed: {
+    ...mapGetters(["user_info"])
   },
   watch: {
   },
   methods: {
     toggle(row = {}) {
-      this.form = { ...originForm, ...row }
+      this.form = { ...originForm, status: this.user_info ? 'public' : 'draft', ...row }
       this.title = this.form.id ? '编辑站点' : '新增站点'
       this.visible = !this.visible
       this.$refs.form ? this.$refs.form.resetFields() : null;
@@ -110,6 +122,14 @@ export default {
         url: Mock.mock('@url'),
         icon: Mock.Random.image('100x100')
       }
+    },
+    onCrawlerSite() {
+      this.loading = true;
+      crawlerItem(this.form).then(res => {
+        this.form = { ...this.form, name: res.title }
+      }).finally(() => {
+        this.loading = false;
+      })
     }
   }
 }

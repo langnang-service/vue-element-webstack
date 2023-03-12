@@ -17,3 +17,6 @@ export const selectList = (data) =>
   request({ url: "/api/guide/select_list", method: "post", data });
 export const selectTree = (data) =>
   request({ url: "/api/guide/select_tree", method: "post", data });
+
+export const crawlerItem = (data) =>
+  request({ url: "/api/guide/crawler", method: "post", data });

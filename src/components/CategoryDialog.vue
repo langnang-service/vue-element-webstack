@@ -17,9 +17,9 @@
               <el-row :gutter="20" style="margin:0;">
                 <el-scrollbar style="height:300px;">
                   <el-col v-for="(icon, idx) in list.children" :key="idx" :label="icon" :span="3" style="margin-right:0;margin-bottom:4px;" @click.native="onIconSelectClick(icon)">
-                    <span :class="['icon-select__item', { 'is-active': form.icon === icon }]">
-                      <i :class="icon"></i>
-                    </span>
+                    <div :class="['icon-select__item', { 'is-active': form.icon === icon }]">
+                      <component :is="['font_awesome_solids', 'font_awesome_regulars', 'font_awesome_brands'].includes(list.value) ? 'font-awesome-icon' : 'i'" :icon="icon.split(' ')" :class="icon"></component>
+                    </div>
                   </el-col>
                 </el-scrollbar>
               </el-row>
@@ -29,8 +29,9 @@
       </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-radio-group v-model="form.status">
-          <el-radio label="public"></el-radio>
-          <el-radio label="private"></el-radio>
+          <el-radio label="public">公开</el-radio>
+          <el-radio label="private">私有</el-radio>
+          <el-radio label="draft">草稿</el-radio>
         </el-radio-group>
       </el-form-item>
       <el-form-item label="排序">
@@ -40,7 +41,7 @@
         <el-input type="textarea" v-model="form.desc"></el-input>
       </el-form-item>
       <el-form-item class="text-right">
-        <el-button class="pull-left" type="warning" @click="onMock">Mock</el-button>
+        <el-button v-if="user_info" class="pull-left" type="warning" @click="onMock">Mock</el-button>
         <el-button type="primary" @click="onSubmit">确认</el-button>
         <el-button @click="onCancel">取消</el-button>
       </el-form-item>
@@ -49,7 +50,11 @@
 </template>
 <script>
 import { elementIcons, fontAwesomeBrands } from '@/constants'
+import { fas } from "@fortawesome/free-solid-svg-icons";
+import { far } from "@fortawesome/free-regular-svg-icons";
+import { fab } from "@fortawesome/free-brands-svg-icons";
 import Mock from 'mockjs'
+import { mapGetters } from 'vuex';
 const originForm = {
   id: null,
   name: "",
@@ -93,15 +98,20 @@ export default {
       iconGroupActive: "element_ui",
       iconGroup: [
         { label: "Element UI", value: "element_ui", children: elementIcons },
-        { label: "Font Awesome Brands", value: "font_awesome_brands", children: fontAwesomeBrands }
+        { label: "Font Awesome Solids", value: "font_awesome_solids", children: [...new Set(Object.values(fas).map(v => `${v.prefix} ${v.iconName}`).filter(v => v !== 'fas rectangle-ad'))] },
+        { label: "Font Awesome Regulars", value: "font_awesome_regulars", children: [...new Set(Object.values(far).map(v => `${v.prefix} ${v.iconName}`))] },
+        { label: "Font Awesome Brands", value: "font_awesome_brands", children: [...new Set(Object.values(fab).map(v => `${v.prefix} ${v.iconName}`))] }
       ],
     }
+  },
+  computed: {
+    ...mapGetters(["user_info"])
   },
   watch: {
   },
   methods: {
     toggle(row = {}) {
-      this.form = { ...originForm, ...row }
+      this.form = { ...originForm, status: this.user_info ? 'public' : 'draft', ...row }
       this.title = this.form.id ? '编辑目录' : '新增目录'
       this.visible = !this.visible
       this.$refs.form ? this.$refs.form.resetFields() : null;
@@ -140,10 +150,12 @@ export default {
   .icon-select__wrapper {}
 
   .icon-select__item {
-    font-size: 48px;
+    font-size: 40px;
+    height: 58px;
     text-align: center;
     border: 1px solid #DCDFE6;
     padding: 4px;
+    line-height: 48px;
     border-radius: 4px;
 
     &:hover {
@@ -164,6 +176,11 @@ export default {
 
   .el-scrollbar__wrap {
     overflow-x: hidden;
+  }
+
+  [class*='fa-'] {
+    margin: 0 !important;
+    padding: 0 !important;
   }
 }
 </style>

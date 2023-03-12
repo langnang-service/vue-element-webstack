@@ -2,7 +2,7 @@ import request from "@/plugins/axios";
 
 export function login(data) {
   return request({
-    url: "/vue-element-webstack/user/login",
+    url: "/api/typecho/user/login",
     method: "post",
     data,
   });

@@ -5,4 +5,6 @@ export default {
   branch_active: (state) => state.app.branch.active,
   branch_prefix: (state) => state.app.branch.prefix,
   tree: (state) => state.app.tree,
+  user_info: (state) => state.user.info,
+  user_role: (state) => (state.user.info || {}).role,
 };
