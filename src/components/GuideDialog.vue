@@ -2,15 +2,22 @@
   <el-dialog :visible.sync="visible" append-to-body :title="title" width="800px">
     <el-form ref="form" :model="form" :rules="rules" label-width="60px" size="small" :disabled="readonly">
       <el-form-item label="名称" prop="name">
-        <el-input v-model="form.name"></el-input>
+        <el-input v-model="form.name" clearable></el-input>
       </el-form-item>
       <el-form-item v-if="form.type === 'branch'" label="编码" prop="slug">
-        <el-input v-model="form.slug"></el-input>
+        <el-input v-model="form.slug" clearable></el-input>
       </el-form-item>
       <el-form-item v-if="['category', 'site'].includes(form.type)" label="徽标" prop="icon">
-        <el-input v-if="form.type === 'site'" v-model="form.icon"></el-input>
+        <el-input v-if="form.type === 'site' && iconOptions.length == 0" v-model="form.icon" clearable></el-input>
 
-        <el-popover v-if="form.type === 'category'" class=" icon-select__wrapper" placement="bottom" width="700" trigger="click">
+        <el-popover v-if="form.type === 'site' && iconOptions.length > 0" placement="bottom" width="700" trigger="click">
+          <el-input slot="reference" v-model="form.icon" clearable></el-input>
+          <el-radio-group v-model="form.icon">
+            <el-radio v-for="item in iconOptions" :key="item" :label="item"></el-radio>
+          </el-radio-group>
+        </el-popover>
+
+        <el-popover v-if="form.type === 'category'" class="icon-select__wrapper" placement="bottom" width="700" trigger="click">
           <el-input slot="reference" v-model="form.icon" disabled>
             <template slot="append"><i class="el-icon-setting"></i></template>
           </el-input>
@@ -30,9 +37,9 @@
         </el-popover>
       </el-form-item>
       <el-form-item v-if="form.type === 'site'" label="地址" prop="url">
-        <el-input v-model="form.url">
+        <el-input v-model="form.url" clearable>
           <template slot="append">
-            <font-awesome-icon :icon="['fas', 'spider']"></font-awesome-icon>
+            <font-awesome-icon :icon="['fas', 'spider']" @click="onCrawlerSite"></font-awesome-icon>
           </template>
         </el-input>
       </el-form-item>
@@ -45,7 +52,13 @@
         <el-input-number v-model="form.order" :min="0" :max="99"></el-input-number>
       </el-form-item>
       <el-form-item label="描述">
-        <el-input type="textarea" v-model="form.description" :rows="4"></el-input>
+        <el-input v-if="descOptions.length == 0" type="textarea" v-model="form.description" :rows="4"></el-input>
+        <el-popover v-if="descOptions.length > 0" placement="bottom" width="700" trigger="click">
+          <el-input slot="reference" type="textarea" v-model="form.description" :rows="4"></el-input>
+          <el-radio-group v-model="form.description">
+            <el-radio v-for="item in descOptions" :key="item" :label="item"></el-radio>
+          </el-radio-group>
+        </el-popover>
       </el-form-item>
       <el-form-item class="text-right">
         <el-button v-if="user_info" class="pull-left" type="warning" @click="onMock">Mock</el-button>
@@ -62,6 +75,7 @@ import { far } from "@fortawesome/free-regular-svg-icons";
 import { fab } from "@fortawesome/free-brands-svg-icons";
 import Mock from 'mockjs'
 import { mapGetters } from 'vuex';
+import { crawlerItem } from '@/api/guide';
 
 
 const [fasIcons, farIcons, fabIcons] = [
@@ -104,6 +118,8 @@ export default {
       },
       readonly: false,
       guideTypeOptions,
+      iconOptions: [],
+      descOptions: [],
       guideStatusOptions,
       iconGroupActive: "element_ui",
       iconGroup: [
@@ -155,6 +171,16 @@ export default {
           })['array'],
         description: Mock.mock('@cparagraph'),
       }
+    },
+    onCrawlerSite() {
+      this.loading = true;
+      crawlerItem({ url: this.form.url }).then(res => {
+        this.form = { ...this.form, name: res.title, icon: res.icons[0], description: res.descriptions[0] }
+        this.iconOptions = res.icons;
+        this.descOptions = res.descriptions;
+      }).finally(() => {
+        this.loading = false;
+      })
     }
   }
 }
@@ -198,8 +224,13 @@ export default {
     padding: 0 !important;
   }
 
-  .el-input-number {
+  .el-input-number,
+  .el-select {
     width: 100%;
   }
+
+
+
+
 }
 </style>

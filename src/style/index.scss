@@ -32,3 +32,18 @@
   margin-top: 3px;
   margin-bottom: 3px;
 }
+
+
+.el-popover {
+  .el-radio-group {
+    width: 100%;
+  }
+
+  .el-radio__label {
+    width: 100%;
+    display: inline-block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+}
