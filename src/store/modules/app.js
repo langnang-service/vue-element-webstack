@@ -3,6 +3,7 @@ import {
   deleteItem,
   deleteList,
   updateItem,
+  crawlerList,
   selectList,
   selectTree,
 } from "@/api/guide";
@@ -49,33 +50,33 @@ const actions = {
       }
     });
   },
-  deleteItem({ state, dispatch }, payload) {
-    let msg;
-    if (payload.type === "category") {
-      msg =
-        "此操作将永久删除该目录, 并将该目录下所属目录及站点迁移至上级目录，是否继续?";
-    }
-
-    this._vm
-      .$confirm(msg, "警告", {
+  deleteList({ state, dispatch }, payload) {
+    if (payload.length === 0) return this._vm.$message({ message: "请选择站点", type: "warning" });
+    return this._vm
+      .$confirm("此操作将永久删除所选站点，是否继续？", "警告", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning",
       })
       .then(() => {
-        deleteItem({ id: payload.id }).then((res) => {
+        deleteList({ id: payload.map(v => v.id) }).then((res) => {
           this._vm.$message({ type: "success", message: "删除成功!" });
-          dispatch("selectTree", {
-            slug: state.branch.active.slug || "default",
-            type: ["category", "site"],
-          });
+          if (payload.type === "branch") {
+            dispatch("selectBranchList");
+            router.push('/home');
+          } else {
+            dispatch("selectTree", {
+              slug: state.branch.active.slug || "default",
+              type: ["category", "site"],
+            });
+          }
         });
       }).catch(() => { });
   },
-  deleteList({ state, dispatch }, payload) {
-    console.log("🚀 ~ file: app.js:76 ~ deleteList ~ payload:", payload);
+  deleteItem({ state, dispatch }, payload) {
+    console.log("🚀 ~ file: app.js:76 ~ deleteItem ~ payload:", payload);
     const msg = getGuideType(payload.type).delete_confirm_msg;
-    console.log("🚀 ~ file: app.js:78 ~ deleteList ~ this._vm:", { ...this._vm });
+    console.log("🚀 ~ file: app.js:78 ~ deleteItem ~ this._vm:", { ...this._vm });
     return this._vm
       .$confirm(msg, "警告", {
         confirmButtonText: "确定",
@@ -108,6 +109,15 @@ const actions = {
         });
       }
     });
+  },
+  crawlerList({ state, dispatch }, payload) {
+    if (payload.length === 0) return this._vm.$message({ message: "请选择站点", type: "warning" });
+    crawlerList({ id: payload.map(v => v.id) }).then(res => {
+      dispatch("selectTree", {
+        slug: state.branch.active.slug || "default",
+        type: ["category", "site"],
+      });
+    })
   },
   // 获取主目录列表
   async selectBranchList({ commit }) {

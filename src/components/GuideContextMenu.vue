@@ -1,6 +1,6 @@
 <template>
   <div class="guide-contextmenu__wrapper">
-    <slot v-contextmenu:contextmenu v-if="user_info"></slot>
+    <slot v-contextmenu:contextmenu v-if="user_info" ref="slot"></slot>
     <slot v-else></slot>
     <v-contextmenu ref="contextmenu">
 
@@ -13,13 +13,13 @@
       <v-contextmenu-item v-if="['category'].includes(type)" :disabled="branch_active.id !== (row || {}).parent" @click="$event => $refs.guide.toggle({ type: 'category', parent: row.id })">
         新增子目录
       </v-contextmenu-item>
-      <v-contextmenu-item v-if="['branch', 'category', 'site'].includes(type)" @click="$event => $refs.guide.toggle({ type: 'site', parent: type === 'site' ? row.parent : row.id })">
+      <v-contextmenu-item v-if="['branch', 'category', 'site'].includes(type)" @click="$event => $refs.guide.toggle({ type: 'site', parent: row.type === 'site' ? parent.id : row.id })">
         新增站点
       </v-contextmenu-item>
 
       <hr />
 
-      <v-contextmenu-item v-if="['branch'].includes(type)" :disabled="!row || !row.id || row.type !== 'branch'" @click="$event => $refs.guide.toggle(row)">
+      <v-contextmenu-item v-if="['branch'].includes(type)" :disabled="!row || !row.id || row.type !== 'branch' || row.slug === 'default'" @click="$event => $refs.guide.toggle(row)">
         编辑分支
       </v-contextmenu-item>
       <v-contextmenu-item v-if="['category', 'site'].includes(type)" :disabled="!row || !row.id || row.type !== 'category' || row.id === branch_active.id" @click="$event => $refs.guide.toggle(row)">
@@ -31,28 +31,22 @@
 
       <hr />
 
-      <v-contextmenu-item v-if="['branch'].includes(type)" :disabled="!row || !row.id || row.type !== 'branch' || row.id != branch_active.id || tree.length > 0" @click="$event => $store.dispatch('app/deleteList', row)">
+      <v-contextmenu-item v-if="['branch'].includes(type)" :disabled="!row || !row.id || row.type !== 'branch' || row.id != branch_active.id || tree.length > 0 || row.slug === 'default'" @click="$event => $store.dispatch('app/deleteItem', row)">
         删除分支
       </v-contextmenu-item>
-      <v-contextmenu-item v-if="['category', 'site'].includes(type)" :disabled="!row || !row.id || row.type !== 'category' || row.id === branch_active.id" @click="$event => $store.dispatch('app/deleteList', row)">
+      <v-contextmenu-item v-if="['category', 'site'].includes(type)" :disabled="!row || !row.id || row.type !== 'category' || row.id === branch_active.id" @click="$event => $store.dispatch('app/deleteItem', row)">
         删除目录
       </v-contextmenu-item>
-      <v-contextmenu-item v-if="['site'].includes(type)" :disabled="!row || !row.id || row.type !== 'site'" @click="$event => $store.dispatch('app/deleteList', row)">
+      <v-contextmenu-item v-if="['site'].includes(type)" :disabled="!row || !row.id || row.type !== 'site'" @click="$event => $store.dispatch('app/deleteItem', row)">
         删除站点
       </v-contextmenu-item>
 
       <hr />
 
-      <v-contextmenu-item disabled>批量</v-contextmenu-item>
-
-      <hr />
-
-      <v-contextmenu-item disabled>迁移</v-contextmenu-item>
-
-      <hr />
+      <v-contextmenu-item v-if="['site'].includes(type)" @click="$event => $parent.toggleBatch()">批量切换</v-contextmenu-item>
+      <v-contextmenu-item v-if="['site'].includes(type)" disabled>数据迁移</v-contextmenu-item>
 
       <v-contextmenu-item :disabled="!row || !row.id" @click="$refs.guide.toggle(row, true)">详情</v-contextmenu-item>
-
     </v-contextmenu>
     <GuideDialog ref="guide" :type="type" @submit="handleSubmitDialog" />
   </div>

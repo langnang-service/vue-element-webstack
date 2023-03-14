@@ -19,4 +19,7 @@ export const selectTree = (data) =>
   request({ url: "/api/guide/select_tree", method: "post", data });
 
 export const crawlerItem = (data) =>
-  request({ url: "/api/guide/crawler", method: "post", data });
+  request({ url: "/api/guide/crawler_item", method: "post", data });
+
+export const crawlerList = (data) =>
+  request({ url: "/api/guide/crawler_list", method: "post", data });

@@ -115,7 +115,7 @@ export default {
       this.handleInsertItem(parent)
     },
     handleDeleteItem() {
-      this.$store.dispatch('app/deleteList', this.row);
+      this.$store.dispatch('app/deleteItem', this.row);
     },
     handleUpdateItem(row) {
       // updateItem(row);

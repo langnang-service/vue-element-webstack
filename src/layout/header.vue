@@ -7,7 +7,7 @@
             <i class="fa-bars"></i>
           </a>
         </li>
-        <li class="hidden-sm hidden-xs" @contextmenu="$event => user_info ? $refs['guide-contextmenu'].handleRowContextMenu(null, $event) : null">
+        <li class="hidden-sm hidden-xs" @contextmenu="$event => user_info ? $refs['guide-contextmenu'].handleRowContextMenu($store.state.app.branch.list.find((v) => v.slug === 'default'), $event) : null">
           <router-link to="/home">Home</router-link>
         </li>
         <li class="hidden-sm hidden-xs" v-for="(item, idx) in branch_list" :key="idx" @contextmenu="$event => user_info ? $refs['guide-contextmenu'].handleRowContextMenu(item, $event) : null">
@@ -23,7 +23,7 @@
         <a style="cursor:pointer">站点收录</a>
       </li>
       <li class="hidden-sm hidden-xs" v-if="user_info">
-        <a style="cursor:pointer">导入</a>
+        <a style="cursor:pointer" @click="$evnet => $refs.import.toggle()">导入</a>
       </li>
       <li class="hidden-sm hidden-xs" v-if="user_info">
         <a style="cursor:pointer">导出</a>
@@ -41,7 +41,7 @@
     <LoginDialog ref="login" @submit="handleSubmitLoginDialog" />
     <SiteDialog ref="site" @submit="handleSubmitDialog" />
     <GuideDialog ref="guide" @submit="handleSubmitDialog" />
-
+    <ImportDialog ref="import" />
   </el-header>
 </template>
 <script>
@@ -50,13 +50,15 @@ import LoginDialog from '@/components/LoginDialog.vue';
 import SiteDialog from '@/components/SiteDialog.vue'
 import GuideDialog from '@/components/GuideDialog.vue'
 import GuideContextMenu from '@/components/GuideContextMenu.vue';
+import ImportDialog from '../components/ImportDialog.vue';
 export default {
   name: "LayoutHeader",
   components: {
     LoginDialog,
     SiteDialog,
     GuideContextMenu,
-    GuideDialog
+    GuideDialog,
+    ImportDialog
   },
   data() {
     return {
