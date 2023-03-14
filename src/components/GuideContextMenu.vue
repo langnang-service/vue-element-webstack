@@ -44,7 +44,7 @@
       <hr />
 
       <v-contextmenu-item v-if="['site'].includes(type)" @click="$event => $parent.toggleBatch()">批量切换</v-contextmenu-item>
-      <v-contextmenu-item v-if="['site'].includes(type)" disabled>数据迁移</v-contextmenu-item>
+      <v-contextmenu-item v-if="['category', 'site'].includes(type)" @click="handleMigration(null)">数据迁移</v-contextmenu-item>
 
       <v-contextmenu-item :disabled="!row || !row.id" @click="$refs.guide.toggle(row, true)">详情</v-contextmenu-item>
     </v-contextmenu>
@@ -76,14 +76,12 @@ export default {
     ...mapGetters(["user_info", "branch_active", "tree"])
   },
   created() {
-    console.log(this.user_info)
   },
   methods: {
     /**
      * 右键表格行，显示菜单
      */
     handleRowContextMenu(row, event, parent) {
-      console.log("🚀 ~ file: GuideContextMenu.vue:56 ~ arguments:", { row, event, parent })
       event.preventDefault()
       this.row = row;
       this.parent = parent;
@@ -104,6 +102,18 @@ export default {
         // this.handleInsertItem(row);
       }
     },
+    handleMigration(rows = []) {
+      if (!rows || rows.length == 0) rows = [{ ...this.row }]
+      this.$prompt('请输入迁移至分支或目录的编号', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputType: 'number',
+      }).then(({ value }) => {
+        rows = rows.map(v => ({ ...v, parent: value }));
+        // this.handleSubmitDialog(this.row);
+        this.$store.dispatch('app/updateList', rows)
+      }).catch(() => { });
+    }
   }
 }
 </script>

@@ -11,7 +11,7 @@ export const deleteList = (data) =>
 export const updateItem = (data) =>
   request({ url: "/api/guide/update_item", method: "post", data });
 export const updateList = (data) =>
-  request({ url: "/api/guide/insert_item", method: "post", data });
+  request({ url: "/api/guide/update_list", method: "post", data });
 
 export const selectList = (data) =>
   request({ url: "/api/guide/select_list", method: "post", data });

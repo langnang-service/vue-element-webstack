@@ -3,6 +3,7 @@ import {
   deleteItem,
   deleteList,
   updateItem,
+  updateList,
   crawlerList,
   selectList,
   selectTree,
@@ -108,6 +109,14 @@ const actions = {
           type: ["category", "site"],
         });
       }
+    });
+  },
+  updateList({ state, dispatch }, payload) {
+    updateList(payload).then((res) => {
+      dispatch("selectTree", {
+        slug: state.branch.active.slug || "default",
+        type: ["category", "site"],
+      });
     });
   },
   crawlerList({ state, dispatch }, payload) {

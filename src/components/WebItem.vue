@@ -7,7 +7,7 @@
             <component :is="(item.icon || '').split(' ').length == 2 ? 'font-awesome-icon' : 'i'" :icon="(item.icon || '').split(' ')" :class="item.icon ? item.icon : 'linecons-tag'" style="margin:0 7px 0 0;width:17px;"></component>
             {{ item.name }}
             <span v-if="batch" class="pull-right" style="margin-top:-4px;">
-              <el-button size="mini" circle type="primary" icon="el-icon-sort" style="transform: rotate(90deg);"></el-button>
+              <el-button size="mini" circle type="primary" icon="el-icon-sort" style="transform: rotate(90deg);" @click="$event => $refs['guide-contextmenu'].handleMigration(multipleSelection)"></el-button>
               <el-button size="mini" circle type="warning" @click="() => $store.dispatch('app/crawlerList', multipleSelection)">
                 <font-awesome-icon :icon="['fas', 'spider']"></font-awesome-icon>
               </el-button>
@@ -18,7 +18,7 @@
 
         <el-empty v-if="sites.length == 0" :image-size="0"></el-empty>
         <div v-else>
-          <el-table v-if="batch" :data="sites" border stripe size="mini" row-key="id" style="margin-top: 10px;" @selection-change="(val) => handleSelectionChange(val)" @row-contextmenu="(row, column, $event) => user_info ? $refs['guide-contextmenu'].handleRowContextMenu(row, $event, item) : null">
+          <el-table v-if="batch" :data="sites" border stripe size="mini" style="margin-top: 10px;" @selection-change="(val) => handleSelectionChange(val)" @row-contextmenu="(row, column, $event) => user_info ? $refs['guide-contextmenu'].handleRowContextMenu(row, $event, item) : null">
             <el-table-column type="selection" width="34"> </el-table-column>
             <el-table-column align="center" show-overflow-tooltip prop="name" label="名称" width="240"></el-table-column>
             <el-table-column align="center" show-overflow-tooltip prop="url" label="地址" width="240"></el-table-column>
@@ -58,7 +58,7 @@
       <v-contextmenu-item :disabled="!item.id" @click="() => $refs['category'].toggle(item)">更新目录</v-contextmenu-item>
       <v-contextmenu-item :disabled="!row || !row.id" @click="() => $refs['site'].toggle(row)">更新站点</v-contextmenu-item>
       <hr />
-      <v-contextmenu-item disabled>迁移站点</v-contextmenu-item>
+      <v-contextmenu-item @click="$event => $ref['site']">迁移站点</v-contextmenu-item>
       <hr />
       <v-contextmenu-item disabled>批量</v-contextmenu-item>
       <hr />
@@ -126,8 +126,6 @@ export default {
       });
     },
     handleInsertItem(parent = null) {
-      console.log(this.row);
-      console.log("handleInsertItem")
       insertItem({ name: Mock.mock('@ctitle'), type: 'site', parent: this.item.id, icon: "el-icon-eleme" }).then(res => {
         this.selectTree();
       });
