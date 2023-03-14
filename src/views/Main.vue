@@ -2,7 +2,7 @@
   <div>
     <!-- 根目录站点 -->
     <div v-if="root_sites.length > 0">
-      <WebItem :prefix="branch_prefix" :item="{ name: '未归类', children: root_sites }" />
+      <WebItem :prefix="branch_prefix" :item="{ id: branch_active.id, name: '未归类', children: root_sites }" />
     </div>
     <div v-for="(item, idx) in tree" :key="idx">
       <!-- 主目录站点 -->
@@ -35,7 +35,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["branch_prefix", "tree"]),
+    ...mapGetters(["branch_prefix", "tree", "branch_active"]),
     root_sites() {
       return this.tree.filter(v => v.type === 'site');
     }

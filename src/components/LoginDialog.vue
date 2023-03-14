@@ -41,6 +41,7 @@ export default {
   },
   methods: {
     toggle(row = {}) {
+      console.log("🚀 ~ file: LoginDialog.vue:44 ~ row:", row)
       this.form = { ...originForm, ...row }
       this.visible = !this.visible;
     },

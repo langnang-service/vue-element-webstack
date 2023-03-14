@@ -1,14 +1,16 @@
 <template>
   <el-dialog :visible.sync="visible" append-to-body :title="title" width="800px">
-    <el-form ref="form" :model="form" :rules="rules" label-width="60px">
+    <el-form ref="form" :model="form" :rules="rules" label-width="60px" size="small" :disabled="readonly">
       <el-form-item label="名称" prop="name">
         <el-input v-model="form.name"></el-input>
       </el-form-item>
-      <el-form-item label="编码" prop="slug">
+      <el-form-item v-if="form.type === 'branch'" label="编码" prop="slug">
         <el-input v-model="form.slug"></el-input>
       </el-form-item>
-      <el-form-item label="图标" prop="icon">
-        <el-popover class="icon-select__wrapper" placement="bottom" width="700" trigger="click">
+      <el-form-item v-if="['category', 'site'].includes(form.type)" label="徽标" prop="icon">
+        <el-input v-if="form.type === 'site'" v-model="form.icon"></el-input>
+
+        <el-popover v-if="form.type === 'category'" class=" icon-select__wrapper" placement="bottom" width="700" trigger="click">
           <el-input slot="reference" v-model="form.icon" disabled>
             <template slot="append"><i class="el-icon-setting"></i></template>
           </el-input>
@@ -27,18 +29,23 @@
           </el-tabs>
         </el-popover>
       </el-form-item>
-      <el-form-item label="状态" prop="status">
+      <el-form-item v-if="form.type === 'site'" label="地址" prop="url">
+        <el-input v-model="form.url">
+          <template slot="append">
+            <font-awesome-icon :icon="['fas', 'spider']"></font-awesome-icon>
+          </template>
+        </el-input>
+      </el-form-item>
+      <el-form-item v-if="user_info" label="状态" prop="status">
         <el-radio-group v-model="form.status">
-          <el-radio label="public">公开</el-radio>
-          <el-radio label="private">私有</el-radio>
-          <el-radio label="draft">草稿</el-radio>
+          <el-radio v-for="item in guideStatusOptions" :key="item.value" :label="item.value">{{ item.label }}</el-radio>
         </el-radio-group>
       </el-form-item>
       <el-form-item label="排序">
-        <el-input-number v-model="form.order"></el-input-number>
+        <el-input-number v-model="form.order" :min="0" :max="99"></el-input-number>
       </el-form-item>
       <el-form-item label="描述">
-        <el-input type="textarea" v-model="form.desc"></el-input>
+        <el-input type="textarea" v-model="form.description" :rows="4"></el-input>
       </el-form-item>
       <el-form-item class="text-right">
         <el-button v-if="user_info" class="pull-left" type="warning" @click="onMock">Mock</el-button>
@@ -49,35 +56,26 @@
   </el-dialog>
 </template>
 <script>
-import { elementIcons } from '@/constants'
-import Element from 'element-ui'
-console.log("🚀 ~ file: CategoryDialog.vue:54 ~ Element:", Element)
+import { elementIcons, guideOriginForm, guideStatusOptions, guideTypeOptions, getGuideType } from '@/constants'
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import { far } from "@fortawesome/free-regular-svg-icons";
 import { fab } from "@fortawesome/free-brands-svg-icons";
-const [fasIcons, farIcons, fabIcons] = [[...new Set(Object.values(fas).map(v => `${v.prefix} ${v.iconName}`).filter(v => v !== 'fas rectangle-ad'))], [...new Set(Object.values(far).map(v => `${v.prefix} ${v.iconName}`))], [...new Set(Object.values(fab).map(v => `${v.prefix} ${v.iconName}`))]];
 import Mock from 'mockjs'
 import { mapGetters } from 'vuex';
-const originForm = {
-  id: null,
-  name: "",
-  slug: null,
-  icon: "",
-  type: "category",
-  status: "public",
-  order: 0,
-  description: "",
-  parent: 0,
-};
+
+
+const [fasIcons, farIcons, fabIcons] = [
+  [...new Set(Object.values(fas).map(v => `${v.prefix} ${v.iconName}`).filter(v => v !== 'fas rectangle-ad'))],
+  [...new Set(Object.values(far).map(v => `${v.prefix} ${v.iconName}`))],
+  [...new Set(Object.values(fab).map(v => `${v.prefix} ${v.iconName}`))]
+];
+
+
 export default {
-  name: "CategoryDialog",
+  name: "GuideDialog",
   components: {
   },
   props: {
-    target: {
-      type: String,
-      default: "category",
-    },
     data: {
       type: Object,
       default: () => ({})
@@ -88,16 +86,25 @@ export default {
       visible: false,
       title: "",
       form: {
-        ...originForm,
+        ...guideOriginForm,
       },
       rules: {
         name: [
           { required: true, message: '请输入名称', trigger: 'blur' },
         ],
+        slug: [
+          { required: true, message: '请输入编码', trigger: 'blur' },
+        ],
+        url: [
+          { required: true, message: '请输入地址', trigger: 'blur' },
+        ],
         icon: [
-          { required: true, message: '请选择图标', trigger: 'blur' }
+          { required: true, message: '请选择徽标', trigger: 'blur' }
         ],
       },
+      readonly: false,
+      guideTypeOptions,
+      guideStatusOptions,
       iconGroupActive: "element_ui",
       iconGroup: [
         { label: "Element UI", value: "element_ui", children: elementIcons },
@@ -110,18 +117,18 @@ export default {
   computed: {
     ...mapGetters(["user_info"])
   },
-  watch: {
-  },
   methods: {
-    toggle(row = {}) {
-      this.form = { ...originForm, status: this.user_info ? 'public' : 'draft', ...row }
-      this.title = this.form.id ? '编辑目录' : '新增目录'
+    toggle(row = {}, readonly = false) {
+      this.readonly = readonly
+      this.form = { ...guideOriginForm, status: this.user_info ? 'public' : 'draft', ...row }
+      this.title = (readonly ? '查看' : this.form.id ? '编辑' : '新增') + getGuideType(row.type).label
       this.visible = !this.visible
       this.$refs.form ? this.$refs.form.resetFields() : null;
     },
     onSubmit() {
       this.$refs.form.validate((valid) => {
         if (valid) {
+          console.log("🚀 ~ file: GuideDialog.vue:124 ~ valid:", valid)
           this.$emit('submit', { ...this.form });
           this.toggle();
         } else {
@@ -139,9 +146,14 @@ export default {
       this.form = {
         ...this.form,
         name: Mock.mock('@ctitle'),
-        icon: Mock.mock({
-          'array|1': [...elementIcons, ...fasIcons, ...farIcons, ...fabIcons],
-        })['array']
+        slug: Mock.mock('@guid'),
+        url: Mock.mock('@url'),
+        icon: this.form.type === 'site'
+          ? Mock.Random.image('200x200')
+          : Mock.mock({
+            'array|1': [...elementIcons, ...fasIcons, ...farIcons, ...fabIcons],
+          })['array'],
+        description: Mock.mock('@cparagraph'),
       }
     }
   }
@@ -184,6 +196,10 @@ export default {
   [class*='fa-'] {
     margin: 0 !important;
     padding: 0 !important;
+  }
+
+  .el-input-number {
+    width: 100%;
   }
 }
 </style>

@@ -36,7 +36,7 @@
   </el-dialog>
 </template>
 <script>
-import { elementIcons, fontAwesomeBrands } from '@/constants'
+import { elementIcons } from '@/constants'
 import { crawlerItem } from '@/api/guide';
 import Mock from 'mockjs'
 import { mapGetters } from 'vuex';
@@ -84,7 +84,6 @@ export default {
       iconGroupActive: "element_ui",
       iconGroup: [
         { label: "Element UI", value: "element_ui", children: elementIcons },
-        { label: "Font Awesome Brands", value: "font_awesome_brands", children: fontAwesomeBrands }
       ],
       iconOptions: [],
       metaOptions: [],

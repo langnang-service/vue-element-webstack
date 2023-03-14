@@ -15,7 +15,7 @@ const actions = {
   login({ state, commit }, payload = {}) {
     const { authCode } = payload;
 
-    login(payload)
+    return login(payload)
       .then((res) => {
         commit("SET_INFO", res);
         if (!authCode) {
@@ -30,18 +30,16 @@ const actions = {
       });
   },
   logout({ state, commit }, payload) {
-    this._vm
-      .$confirm("确定要登出嘛？", "警告", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-      })
-      .then(() => {
-        removeToken();
-        window.location.reload();
-      });
+    return this._vm.$confirm("确定要登出吗？", "警告", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
+    }).then(() => {
+      removeToken();
+      window.location.reload();
+    }).catch(() => { });
   },
-  getItem({ state, commit }, payload) {},
+  getItem({ state, commit }, payload) { },
 };
 
 export default {

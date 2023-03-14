@@ -5,7 +5,7 @@ import { loadJs } from "./../assets/js/app.js";
 import store from "./../store/index";
 Vue.use(VueRouter);
 
-async function getDynamicRoutes() {}
+async function getDynamicRoutes() { }
 
 // const dynamicRoutes = getDynamicRoutes();
 
@@ -26,6 +26,16 @@ export const constantRoutes = [
   },
   {
     path: "/public/:branch/:name?",
+    component: () => import("../views/Main.vue"),
+    beforeEnter,
+  },
+  {
+    path: "/private/:branch/:name?",
+    component: () => import("../views/Main.vue"),
+    beforeEnter,
+  },
+  {
+    path: "/draft/:branch/:name?",
     component: () => import("../views/Main.vue"),
     beforeEnter,
   },
